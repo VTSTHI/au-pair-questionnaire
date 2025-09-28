@@ -1,0 +1,138 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model AuPairQuestionnaire {
+  id                String   @id @default(cuid())
+  uniqueToken       String   @unique
+  
+  // Personal Information
+  firstName         String?
+  lastName          String?
+  gender            String?
+  nationality       String?
+  placeOfBirth      String?
+  dateOfBirth       DateTime?
+  age               Int?
+  city              String?
+  country           String?
+  height            String?
+  weight            String?
+  
+  // Family Background
+  fatherName        String?
+  fatherJob         String?
+  motherName        String?
+  motherJob         String?
+  numberOfSiblings  Int?
+  siblingDetails    String?
+  livingSituation   String?
+  parentalSupport   String?
+  
+  // Personal Details
+  familyFriendsInGermany  String?
+  travelExperience        String?
+  maritalStatus          String?
+  hasChildren            Boolean?
+  
+  // Health
+  allergies         String?
+  smokingStatus     String?
+  medicalConditions String?
+  
+  // Religious Information
+  religion          String?
+  religiousImportance String?
+  
+  // Dietary Habits
+  meatConsumption   String?
+  fishConsumption   String?
+  alcoholConsumption String?
+  dietaryRestrictions String?
+  
+  // Education & Work
+  schoolHistory     String?
+  universityDetails String?
+  currentEmployment String?
+  
+  // Personality Assessment
+  selfDescription   String?
+  organizationalSkills String?
+  punctuality       String?
+  communicationStyle String?
+  socialPreferences String?
+  creativity        String?
+  patience          String?
+  
+  // Language Skills
+  germanProficiency String?
+  englishProficiency String?
+  otherLanguages    String?
+  
+  // Hobbies & Skills
+  sports            String?
+  instruments       String?
+  recreationalActivities String?
+  driversLicense    Boolean?
+  vehicleExperience String?
+  
+  // Pet Experience
+  petComfort        String?
+  petOwnership      String?
+  petCareWillingness String?
+  
+  // Childcare Experience
+  ageGroupExperience String?
+  childcareSkills   String?
+  handicappedChildrenExperience String?
+  
+  // Household Skills
+  cookingAbilities  String?
+  cleaningSkills    String?
+  laundryManagement String?
+  gardening         String?
+  groceryShopping   String?
+  
+  // Host Family Preferences
+  singleParentWillingness String?
+  cityVillagePreference  String?
+  familyInteraction     String?
+  
+  // Travel & Availability
+  embassyAppointment    DateTime?
+  earliestStartDate     DateTime?
+  plannedDuration       String?
+  tripFunding          String?
+  
+  // Additional
+  motivationalLetter    String?
+  photos               String? // JSON array of photo URLs
+  
+  // Metadata
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  
+  // Relations
+  auditLogs            AuditLog[]
+}
+
+model AuditLog {
+  id                   String   @id @default(cuid())
+  questionnaireId      String
+  fieldName           String
+  oldValue            String?
+  newValue            String?
+  changedAt           DateTime @default(now())
+  
+  questionnaire       AuPairQuestionnaire @relation(fields: [questionnaireId], references: [id], onDelete: Cascade)
+  
+  @@index([questionnaireId])
+}
