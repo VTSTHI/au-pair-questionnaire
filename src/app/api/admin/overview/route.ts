@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { initializeDatabase } from '@/lib/init-db'
 
 export async function GET() {
   try {
+    // Initialize database first
+    await initializeDatabase()
+    
     const questionnaires = await prisma.auPairQuestionnaire.findMany({
       where: {
         OR: [

@@ -54,13 +54,19 @@ export default function AdminDashboard() {
       const response = await fetch('/api/admin/generate-link', {
         method: 'POST',
       })
-      if (response.ok) {
-        const data = await response.json()
+      
+      const data = await response.json()
+      
+      if (response.ok && data.success) {
         setNewInvitationLink(data.invitationLink)
         fetchQuestionnaires() // Refresh the list
+      } else {
+        console.error('API Error:', data.error, data.details)
+        alert(`Fehler beim Generieren des Links: ${data.error}${data.details ? '\n\nDetails: ' + data.details : ''}`)
       }
     } catch (error) {
-      console.error('Failed to generate invitation link:', error)
+      console.error('Network error:', error)
+      alert('Netzwerkfehler beim Generieren des Einladungslinks. Bitte versuchen Sie es erneut.')
     } finally {
       setGenerating(false)
     }
