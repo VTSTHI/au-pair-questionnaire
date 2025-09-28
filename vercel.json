@@ -1,0 +1,16 @@
+{
+  "build": {
+    "env": {
+      "DATABASE_URL": "file:./prisma/dev.db"
+    }
+  },
+  "env": {
+    "DATABASE_URL": "file:./prisma/dev.db",
+    "NEXT_PUBLIC_BASE_URL": "https://au-pair-questionnaire.vercel.app"
+  },
+  "functions": {
+    "app/api/**": {
+      "maxDuration": 30
+    }
+  }
+}
