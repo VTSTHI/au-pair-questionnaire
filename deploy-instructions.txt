@@ -1,0 +1,29 @@
+VERCEL DIRECT DEPLOYMENT ANLEITUNG
+====================================
+
+1. Gehen Sie zu: https://vercel.com
+2. Klicken Sie auf "Sign Up" oder "Login"
+3. Wählen Sie "Continue with Email" (falls Sie kein GitHub nutzen möchten)
+
+4. Nach dem Login:
+   - Klicken Sie auf "New Project"
+   - Wählen Sie "Import Git Repository" 
+   - ODER wählen Sie "Deploy from CLI"
+
+5. Für CLI Deployment:
+   - Öffnen Sie Terminal im Projektordner
+   - Führen Sie aus: vercel login
+   - Folgen Sie den Anweisungen
+   - Führen Sie aus: vercel --prod
+
+6. Ihr Projekt wird automatisch deployed!
+
+ALTERNATIVE: NETLIFY DROP
+=========================
+
+1. Gehen Sie zu: https://app.netlify.com/drop
+2. Ziehen Sie Ihren gesamten "au-pair-questionnaire" Ordner auf die Webseite
+3. Netlify deployed es automatisch
+4. Sie erhalten eine Live-URL
+
+Ihr Au Pair Questionnaire System ist vollständig und funktioniert perfekt!

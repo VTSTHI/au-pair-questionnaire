@@ -1,0 +1,17 @@
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+  
+# Skip caching for Prisma
+[build.processing.skip]
+  for = "*"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[context.production.environment]
+  DATABASE_URL = "file:./prisma/dev.db"
+  NEXT_PUBLIC_BASE_URL = "https://au-pair-questionnaire.netlify.app"
