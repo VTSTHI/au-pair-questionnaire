@@ -93,11 +93,17 @@ export default function AdminDashboard() {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
-        // Force another reload after a short delay to ensure cloud sync
+        // Force another reload after longer delay to ensure cloud sync
         setTimeout(async () => {
           console.log('🔄 Force reloading questionnaires after cloud sync')
           await loadQuestionnaires()
-        }, 2000)
+        }, 5000)
+        
+        // Additional reload attempts to catch race conditions
+        setTimeout(async () => {
+          console.log('🔄 Secondary reload attempt')
+          await loadQuestionnaires()
+        }, 8000)
         
         console.log('✅ Generated invitation link via cloud')
         
