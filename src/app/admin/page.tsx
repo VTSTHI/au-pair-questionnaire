@@ -26,6 +26,18 @@ export default function AdminDashboard() {
     loadQuestionnaires()
   }, [])
 
+  // Debug: Track questionnaire state changes
+  useEffect(() => {
+    console.log('📊 Questionnaire state changed:', {
+      count: questionnaires.length,
+      timestamp: new Date().toISOString(),
+      firstFew: questionnaires.slice(0, 2).map(q => ({ 
+        token: q.uniqueToken?.substring(0, 8), 
+        created: q.createdAt?.substring(0, 16) 
+      }))
+    })
+  }, [questionnaires])
+
   const loadQuestionnaires = async (forceRefresh = false) => {
     setLoading(true)
     try {
@@ -39,11 +51,21 @@ export default function AdminDashboard() {
       })
       if (cloudResponse.ok) {
         const cloudData = await cloudResponse.json()
-        console.log('✅ API returned', cloudData.length, 'questionnaires')
+        console.log('🔍 loadQuestionnaires API response:', {
+          url: `/api/cloud/admin/overview${cacheBuster}`,
+          dataLength: cloudData.length,
+          firstFew: cloudData.slice(0, 2).map(q => ({ token: q.uniqueToken?.substring(0, 8), created: q.createdAt }))
+        })
+        
         setQuestionnaires(cloudData)
+        
+        console.log('🔍 React state after setQuestionnaires:', {
+          stateLength: cloudData.length,
+          timestamp: new Date().toISOString()
+        })
+        
         // Also save to localStorage as backup
         saveToStorage(cloudData)
-        console.log('✅ State updated with', cloudData.length, 'questionnaires')
       } else {
         console.log('⚠️ Cloud response not ok:', cloudResponse.status)
         // Fallback to localStorage
@@ -91,15 +113,28 @@ export default function AdminDashboard() {
         const cloudData = await cloudResponse.json()
         setNewInvitationLink(cloudData.invitationLink)
         
+        console.log('🎯 Generated new link:', {
+          token: cloudData.token,
+          link: cloudData.invitationLink,
+          currentQuestionnaireCount: questionnaires.length
+        })
+        
         // Show success message immediately
         setTimeout(() => {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
         // Force reload immediately with cache busting
-        console.log('🔄 Forcing immediate questionnaire reload...')
+        console.log('🔄 Forcing immediate questionnaire reload after link generation...')
+        console.log('🔍 Current React state before reload:', {
+          currentCount: questionnaires.length,
+          expectedAfterReload: questionnaires.length + 1
+        })
+        
         await loadQuestionnaires(true)
-        console.log('✅ Questionnaire list refreshed immediately')
+        
+        // Note: questionnaires.length here is still the old value due to async state updates
+        // The actual new count will be logged by the useEffect when state updates
         
         console.log('✅ Generated invitation link via cloud')
         
