@@ -3,7 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Only create client if both URL and key are available
+export const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null
 
 export interface CloudQuestionnaireData {
   id: string
@@ -20,18 +21,23 @@ export interface CloudQuestionnaireData {
 
 export interface CloudQuestionnaireOverview {
   id: string
-  unique_token: string
-  first_name?: string
-  last_name?: string
+  uniqueToken: string
+  firstName?: string
+  lastName?: string
   age?: number
   country?: string
   nationality?: string
-  created_at: string
-  updated_at: string
+  createdAt: string
+  updatedAt: string
 }
 
 // Save questionnaire data to cloud
 export async function saveQuestionnaireToCloud(token: string, data: any): Promise<boolean> {
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, skipping cloud save')
+    return false
+  }
+  
   try {
     const questionnaireData = {
       id: token,
@@ -64,6 +70,11 @@ export async function saveQuestionnaireToCloud(token: string, data: any): Promis
 
 // Get questionnaire data from cloud
 export async function getQuestionnaireFromCloud(token: string): Promise<any | null> {
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, skipping cloud fetch')
+    return null
+  }
+  
   try {
     const { data, error } = await supabase
       .from('questionnaires')
@@ -84,6 +95,11 @@ export async function getQuestionnaireFromCloud(token: string): Promise<any | nu
 
 // Get all questionnaires overview from cloud
 export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestionnaireOverview[]> {
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, skipping cloud overview')
+    return []
+  }
+  
   try {
     const { data, error } = await supabase
       .from('questionnaires')
@@ -114,6 +130,11 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
 
 // Create new questionnaire entry in cloud
 export async function createQuestionnaireInCloud(token: string): Promise<boolean> {
+  if (!supabase) {
+    console.log('⚠️ Supabase not configured, skipping cloud create')
+    return false
+  }
+  
   try {
     const { error } = await supabase
       .from('questionnaires')
