@@ -97,23 +97,53 @@ export default function QuestionnairePage() {
 
   const fetchQuestionnaire = async () => {
     try {
-      // Load from localStorage instead of API
+      // Try to load from cloud first
+      const cloudResponse = await fetch(`/api/cloud/questionnaire/${token}`)
+      if (cloudResponse.ok) {
+        const questionnaireData = await cloudResponse.json()
+        setData(questionnaireData)
+        // Also save to localStorage as backup
+        localStorage.setItem(`questionnaire_${token}`, JSON.stringify(questionnaireData))
+        console.log('✅ Loaded questionnaire from cloud')
+      } else if (cloudResponse.status === 404) {
+        // Questionnaire not found in cloud, check localStorage
+        const stored = localStorage.getItem(`questionnaire_${token}`)
+        if (stored) {
+          const questionnaireData = JSON.parse(stored)
+          setData(questionnaireData)
+          console.log('⚠️ Loaded questionnaire from localStorage (not in cloud)')
+        } else {
+          setError('Questionnaire not found. Please check your invitation link.')
+        }
+      } else {
+        // Cloud error, fallback to localStorage
+        const stored = localStorage.getItem(`questionnaire_${token}`)
+        if (stored) {
+          const questionnaireData = JSON.parse(stored)
+          setData(questionnaireData)
+          console.log('⚠️ Cloud unavailable, using localStorage')
+        } else {
+          // Create new questionnaire entry if it doesn't exist
+          const newQuestionnaire = {
+            uniqueToken: token,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          }
+          localStorage.setItem(`questionnaire_${token}`, JSON.stringify(newQuestionnaire))
+          setData(newQuestionnaire)
+          console.log('⚠️ Created new questionnaire (cloud unavailable)')
+        }
+      }
+    } catch (error) {
+      console.error('Cloud fetch failed, using localStorage:', error)
+      // Fallback to localStorage
       const stored = localStorage.getItem(`questionnaire_${token}`)
       if (stored) {
         const questionnaireData = JSON.parse(stored)
         setData(questionnaireData)
       } else {
-        // Create new questionnaire entry if it doesn't exist
-        const newQuestionnaire = {
-          uniqueToken: token,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-        localStorage.setItem(`questionnaire_${token}`, JSON.stringify(newQuestionnaire))
-        setData(newQuestionnaire)
+        setError('Failed to load questionnaire.')
       }
-    } catch (error) {
-      setError('Failed to load questionnaire.')
     } finally {
       setLoading(false)
     }
@@ -126,17 +156,37 @@ export default function QuestionnairePage() {
     setSuccess('')
 
     try {
-      // Save to localStorage instead of API
-      console.log('Saving questionnaire to localStorage...', token)
+      console.log('Saving questionnaire...', token)
       const updatedData = {
         ...data,
         uniqueToken: token,
         updatedAt: new Date().toISOString()
       }
       
+      let cloudSuccess = false
+      
+      // Try to save to cloud first
+      try {
+        const cloudResponse = await fetch(`/api/cloud/questionnaire/${token}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedData),
+        })
+        
+        if (cloudResponse.ok) {
+          cloudSuccess = true
+          console.log('✅ Saved questionnaire to cloud')
+        }
+      } catch (cloudError) {
+        console.error('Cloud save failed:', cloudError)
+      }
+      
+      // Always save to localStorage as backup
       localStorage.setItem(`questionnaire_${token}`, JSON.stringify(updatedData))
       
-      // Also update the admin dashboard list
+      // Also update the admin dashboard list in localStorage
       const adminList = JSON.parse(localStorage.getItem('auPairQuestionnaires') || '[]')
       const existingIndex = adminList.findIndex((q: any) => q.uniqueToken === token)
       
@@ -166,11 +216,12 @@ export default function QuestionnairePage() {
       
       localStorage.setItem('auPairQuestionnaires', JSON.stringify(adminList))
       
-      setSuccess('✅ Fragebogen erfolgreich gespeichert!')
+      const saveLocation = cloudSuccess ? 'Cloud & Local' : 'Local'
+      setSuccess(`✅ Fragebogen erfolgreich gespeichert! (${saveLocation})`)
       
       // Show comprehensive success message with instructions
       setTimeout(() => {
-        alert(`🎉 Fragebogen erfolgreich gespeichert!
+        alert(`🎉 Fragebogen erfolgreich gespeichert! (${saveLocation})
 
 📝 Ihre Daten wurden sicher gespeichert.
 

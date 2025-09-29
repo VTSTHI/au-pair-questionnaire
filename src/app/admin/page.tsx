@@ -23,10 +23,33 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    // Load questionnaires from localStorage for demo
-    loadStoredQuestionnaires()
-    setLoading(false)
+    loadQuestionnaires()
   }, [])
+
+  const loadQuestionnaires = async () => {
+    setLoading(true)
+    try {
+      // Try to load from cloud first
+      const cloudResponse = await fetch('/api/cloud/admin/overview')
+      if (cloudResponse.ok) {
+        const cloudData = await cloudResponse.json()
+        setQuestionnaires(cloudData)
+        // Also save to localStorage as backup
+        saveToStorage(cloudData)
+        console.log('✅ Loaded questionnaires from cloud:', cloudData.length)
+      } else {
+        // Fallback to localStorage
+        loadStoredQuestionnaires()
+        console.log('⚠️ Cloud unavailable, using localStorage')
+      }
+    } catch (error) {
+      console.error('Cloud fetch failed, using localStorage:', error)
+      // Fallback to localStorage
+      loadStoredQuestionnaires()
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const loadStoredQuestionnaires = () => {
     try {
@@ -51,6 +74,41 @@ export default function AdminDashboard() {
     setGenerating(true)
     setError('')
     
+    try {
+      // Try to generate via cloud first
+      const cloudResponse = await fetch('/api/cloud/admin/generate-link', {
+        method: 'POST'
+      })
+      
+      if (cloudResponse.ok) {
+        const cloudData = await cloudResponse.json()
+        setNewInvitationLink(cloudData.invitationLink)
+        
+        // Reload questionnaires to show the new one
+        await loadQuestionnaires()
+        
+        // Show success message
+        setTimeout(() => {
+          alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
+        }, 100)
+        
+        console.log('✅ Generated invitation link via cloud')
+        
+      } else {
+        // Fallback to localStorage method
+        await generateInvitationLinkLocal()
+      }
+      
+    } catch (error) {
+      console.error('Cloud generation failed, using localStorage:', error)
+      // Fallback to localStorage method
+      await generateInvitationLinkLocal()
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  const generateInvitationLinkLocal = async () => {
     try {
       // Generate a unique token
       const token = uuidv4()
@@ -79,14 +137,14 @@ export default function AdminDashboard() {
       
       // Show success message
       setTimeout(() => {
-        alert(`✅ Einladungslink erfolgreich generiert!\\n\\nLink: ${invitationLink}\\n\\nToken: ${token}`)
+        alert(`✅ Einladungslink erfolgreich generiert! (Local)\n\nLink: ${invitationLink}\n\nToken: ${token}`)
       }, 100)
+      
+      console.log('⚠️ Generated invitation link via localStorage')
       
     } catch (error) {
       console.error('Error generating invitation link:', error)
       setError('Fehler beim Generieren des Einladungslinks')
-    } finally {
-      setGenerating(false)
     }
   }
 
