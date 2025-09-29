@@ -15,9 +15,9 @@ A comprehensive web application for managing au pair applications with secure qu
 
 - **Frontend**: Next.js 15 with TypeScript
 - **Styling**: Tailwind CSS
-- **Database**: SQLite (easily upgradeable to PostgreSQL)
-- **ORM**: Prisma
+- **Data Storage**: Browser localStorage (offline-capable)
 - **Authentication**: Unique token-based access
+- **Deployment**: Vercel
 
 ## Getting Started
 
@@ -38,18 +38,21 @@ cd au-pair-questionnaire
 npm install
 ```
 
-3. Set up the database:
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-4. Start the development server:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+4. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Live Demo
+
+- **Admin Dashboard**: [https://au-pair-questionnaire.vercel.app/admin](https://au-pair-questionnaire.vercel.app/admin)
+- **Sample Questionnaire**: Generate a link from the admin dashboard
+
+## System Update (December 2024)
+
+The system has been updated to use browser localStorage for maximum compatibility and reliability. All data is stored locally in the browser, ensuring the system works offline and without server dependencies.
 
 ## Usage
 
