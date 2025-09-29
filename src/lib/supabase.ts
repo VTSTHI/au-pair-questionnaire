@@ -101,14 +101,32 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
   }
   
   try {
-    // Add small delay to account for eventual consistency
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Multiple query strategies for consistency
+    let data, error
     
-    const { data, error } = await supabase
+    // Strategy 1: Try with explicit read consistency
+    const result1 = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
       .order('created_at', { ascending: false })
       .limit(50)
+    
+    console.log('Supabase query result:', result1.data?.length, 'questionnaires')
+    
+    // Strategy 2: If that fails, try without limit
+    if (!result1.data || result1.data.length === 0) {
+      const result2 = await supabase
+        .from('questionnaires')
+        .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
+        .order('created_at', { ascending: false })
+      
+      console.log('Fallback query result:', result2.data?.length, 'questionnaires')
+      data = result2.data
+      error = result2.error
+    } else {
+      data = result1.data
+      error = result1.error
+    }
     
     if (error || !data) {
       console.error('Supabase overview error:', error)
@@ -142,7 +160,7 @@ export async function createQuestionnaireInCloud(token: string): Promise<boolean
   }
   
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from('questionnaires')
       .insert({
         id: token,
@@ -155,11 +173,23 @@ export async function createQuestionnaireInCloud(token: string): Promise<boolean
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
+      .select()
     
     if (error) {
       console.error('Supabase create error:', error)
       return false
     }
+    
+    console.log('✅ Created questionnaire in Supabase:', data)
+    
+    // Immediate read-back test
+    const readBack = await supabase
+      .from('questionnaires')
+      .select('id')
+      .eq('unique_token', token)
+      .single()
+    
+    console.log('Immediate read-back test:', readBack.data ? '✅ Found' : '❌ Not found')
     
     return true
   } catch (error) {
