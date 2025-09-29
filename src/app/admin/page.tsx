@@ -93,17 +93,29 @@ export default function AdminDashboard() {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
-        // Force another reload after longer delay to ensure cloud sync
-        setTimeout(async () => {
-          console.log('🔄 Force reloading questionnaires after cloud sync')
+        // Polling mechanism to ensure new link appears
+        const pollForNewQuestionnaire = async (expectedCount: number, attempts: number = 0) => {
+          if (attempts > 10) {
+            console.log('⚠️ Stopped polling after 10 attempts')
+            return
+          }
+          
+          console.log(`🔄 Polling attempt ${attempts + 1} for questionnaire count > ${expectedCount}`)
           await loadQuestionnaires()
-        }, 5000)
+          
+          // Check if we got the new questionnaire
+          if (questionnaires.length > expectedCount) {
+            console.log('✅ Found new questionnaire after', attempts + 1, 'attempts')
+            return
+          }
+          
+          // Try again in 2 seconds
+          setTimeout(() => pollForNewQuestionnaire(expectedCount, attempts + 1), 2000)
+        }
         
-        // Additional reload attempts to catch race conditions
-        setTimeout(async () => {
-          console.log('🔄 Secondary reload attempt')
-          await loadQuestionnaires()
-        }, 8000)
+        // Start polling for the new questionnaire
+        const currentCount = questionnaires.length
+        setTimeout(() => pollForNewQuestionnaire(currentCount), 1000)
         
         console.log('✅ Generated invitation link via cloud')
         

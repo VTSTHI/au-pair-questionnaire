@@ -101,6 +101,9 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
   }
   
   try {
+    // Add small delay to account for eventual consistency
+    await new Promise(resolve => setTimeout(resolve, 100))
+    
     const { data, error } = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
