@@ -1,41 +1,9 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { initializeDatabase } from '@/lib/init-db'
 
 export async function GET() {
-  try {
-    // Initialize database first
-    await initializeDatabase()
-    
-    const questionnaires = await prisma.auPairQuestionnaire.findMany({
-      where: {
-        OR: [
-          { firstName: { not: null } },
-          { lastName: { not: null } }
-        ]
-      },
-      select: {
-        id: true,
-        uniqueToken: true,
-        firstName: true,
-        lastName: true,
-        age: true,
-        country: true,
-        nationality: true,
-        createdAt: true,
-        updatedAt: true
-      },
-      orderBy: {
-        updatedAt: 'desc'
-      }
-    })
-
-    return NextResponse.json(questionnaires)
-  } catch (error) {
-    console.error('Error fetching questionnaires overview:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
+  // This endpoint is deprecated - admin dashboard now uses localStorage
+  return NextResponse.json({
+    message: 'This endpoint is deprecated. Admin dashboard now uses browser localStorage.',
+    questionnaires: []
+  })
 }
