@@ -167,7 +167,24 @@ export default function QuestionnairePage() {
       localStorage.setItem('auPairQuestionnaires', JSON.stringify(adminList))
       
       setSuccess('✅ Fragebogen erfolgreich gespeichert!')
-      setTimeout(() => setSuccess(''), 5000)
+      
+      // Show comprehensive success message with instructions
+      setTimeout(() => {
+        alert(`🎉 Fragebogen erfolgreich gespeichert!
+
+📝 Ihre Daten wurden sicher gespeichert.
+
+💡 Sie können nun:
+• Diese Seite schließen
+• Jederzeit über den Einladungslink zurückkehren
+• Ihre Antworten weiter bearbeiten oder vervollständigen
+
+🔗 Speichern Sie den Einladungslink für späteren Zugriff!
+
+Vielen Dank für Ihre Bewerbung als Au Pair!`)
+      }, 500)
+      
+      setTimeout(() => setSuccess(''), 8000)
     } catch (error) {
       setError('❌ Fehler beim Speichern des Fragebogens.')
     } finally {
@@ -526,8 +543,31 @@ export default function QuestionnairePage() {
                 </div>
               )}
               {success && (
-                <div className="mb-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                  {success}
+                <div className="mb-6 p-6 bg-green-50 border-2 border-green-200 text-green-800 rounded-lg shadow-lg">
+                  <div className="text-lg font-semibold mb-3">{success}</div>
+                  <div className="space-y-2 text-sm">
+                    <p className="flex items-center">
+                      <span className="mr-2">📝</span>
+                      <strong>Ihre Daten wurden sicher gespeichert.</strong>
+                    </p>
+                    <p className="flex items-center">
+                      <span className="mr-2">💡</span>
+                      Sie können diese Seite nun schließen.
+                    </p>
+                    <p className="flex items-center">
+                      <span className="mr-2">🔗</span>
+                      Über den Einladungslink können Sie jederzeit zurückkehren.
+                    </p>
+                    <p className="flex items-center">
+                      <span className="mr-2">✏️</span>
+                      Ihre Antworten können weiter bearbeitet oder vervollständigt werden.
+                    </p>
+                    <div className="mt-4 pt-3 border-t border-green-200">
+                      <p className="text-center font-medium text-green-700">
+                        🌟 Vielen Dank für Ihre Bewerbung als Au Pair! 🌟
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
               <div className="flex justify-end">
