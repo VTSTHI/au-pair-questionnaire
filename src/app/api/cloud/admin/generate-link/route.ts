@@ -16,9 +16,7 @@ export async function POST() {
     }
     
     // Get the current URL from the request or environment
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 
-                   process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` :
-                   'http://localhost:3000'
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'https://au-pair-questionnaire.vercel.app'
     
     const invitationLink = `${baseUrl}/questionnaire/${token}`
     
