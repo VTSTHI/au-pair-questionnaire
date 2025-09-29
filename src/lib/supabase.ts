@@ -105,11 +105,14 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
       .order('created_at', { ascending: false })
+      .limit(50)
     
     if (error || !data) {
       console.error('Supabase overview error:', error)
       return []
     }
+    
+    console.log('Supabase raw data count:', data.length)
     
     return data.map(item => ({
       id: item.id,
