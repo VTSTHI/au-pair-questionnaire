@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getQuestionnaireFromCloud, saveQuestionnaireToCloud } from '@/lib/kv'
+import { getQuestionnaireFromCloud, saveQuestionnaireToCloud } from '@/lib/supabase'
 
 export async function GET(
   request: NextRequest,
@@ -32,14 +32,7 @@ export async function PUT(
   try {
     const data = await request.json()
     
-    const questionnaireData = {
-      ...data,
-      id: data.id || params.token,
-      uniqueToken: params.token,
-      updatedAt: new Date().toISOString()
-    }
-    
-    const success = await saveQuestionnaireToCloud(questionnaireData)
+    const success = await saveQuestionnaireToCloud(params.token, data)
     
     if (!success) {
       return NextResponse.json(
@@ -48,7 +41,7 @@ export async function PUT(
       )
     }
 
-    return NextResponse.json({ success: true, data: questionnaireData })
+    return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error('Error saving questionnaire to cloud:', error)
     return NextResponse.json(

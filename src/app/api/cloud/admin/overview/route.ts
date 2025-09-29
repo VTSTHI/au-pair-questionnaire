@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getQuestionnairesOverviewFromCloud } from '@/lib/kv'
+import { getQuestionnairesOverviewFromCloud } from '@/lib/supabase'
 
 export async function GET() {
   try {
