@@ -92,6 +92,12 @@ export default function AdminDashboard() {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
+        // Force another reload after a short delay to ensure cloud sync
+        setTimeout(async () => {
+          console.log('🔄 Force reloading questionnaires after cloud sync')
+          await loadQuestionnaires()
+        }, 2000)
+        
         console.log('✅ Generated invitation link via cloud')
         
       } else {
@@ -201,6 +207,13 @@ export default function AdminDashboard() {
                   className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
                   {generating ? 'Generiere...' : '🔗 Neuen Einladungslink generieren'}
+                </button>
+                <button
+                  onClick={loadQuestionnaires}
+                  disabled={loading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
+                >
+                  {loading ? 'Lade...' : '🔄 Aktualisieren'}
                 </button>
                 <button
                   onClick={clearAllData}
