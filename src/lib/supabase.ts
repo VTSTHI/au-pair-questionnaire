@@ -104,7 +104,7 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
     const { data, error } = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
-      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
     
     if (error || !data) {
       console.error('Supabase overview error:', error)
