@@ -37,6 +37,7 @@ export default function AdminDashboard() {
         // Also save to localStorage as backup
         saveToStorage(cloudData)
         console.log('✅ Loaded questionnaires from cloud:', cloudData.length)
+        console.log('Cloud questionnaires:', cloudData)
       } else {
         // Fallback to localStorage
         loadStoredQuestionnaires()
