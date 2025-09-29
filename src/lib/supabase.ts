@@ -104,29 +104,18 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
     // Multiple query strategies for consistency
     let data, error
     
-    // Strategy 1: Try with explicit read consistency
-    const result1 = await supabase
+    // Remove limit and try different strategies
+    console.log('Attempting Supabase query without limit...')
+    
+    const result = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
       .order('created_at', { ascending: false })
-      .limit(50)
     
-    console.log('Supabase query result:', result1.data?.length, 'questionnaires')
+    console.log('Supabase query result:', result.data?.length, 'questionnaires')
     
-    // Strategy 2: If that fails, try without limit
-    if (!result1.data || result1.data.length === 0) {
-      const result2 = await supabase
-        .from('questionnaires')
-        .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
-        .order('created_at', { ascending: false })
-      
-      console.log('Fallback query result:', result2.data?.length, 'questionnaires')
-      data = result2.data
-      error = result2.error
-    } else {
-      data = result1.data
-      error = result1.error
-    }
+    data = result.data
+    error = result.error
     
     if (error || !data) {
       console.error('Supabase overview error:', error)
