@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+import { getQuestionnairesOverviewFromCloud } from '@/lib/supabase'
 
 export async function GET() {
   if (!supabase) {
@@ -7,31 +8,60 @@ export async function GET() {
   }
 
   try {
-    // Get total count
+    const timestamp = new Date().toISOString()
+    
+    // Test 1: Raw count
     const countResult = await supabase
       .from('questionnaires')
       .select('id', { count: 'exact', head: true })
 
-    // Get all records with minimal fields
-    const selectResult = await supabase
+    // Test 2: Raw select all
+    const allResult = await supabase
       .from('questionnaires')
-      .select('id, unique_token, created_at')
+      .select('*')
       .order('created_at', { ascending: false })
 
-    // Get all IDs only to compare
-    const idsOnlyResult = await supabase
+    // Test 3: Same query as overview API
+    const overviewResult = await supabase
       .from('questionnaires')
-      .select('id')
+      .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
+      .order('created_at', { ascending: false })
+
+    // Test 4: Use our library function
+    const libResult = await getQuestionnairesOverviewFromCloud()
+
+    // Test 5: Check for null/undefined fields
+    const nullCheckResult = await supabase
+      .from('questionnaires')
+      .select('id, unique_token')
+      .or('id.is.null,unique_token.is.null')
 
     return NextResponse.json({
-      totalCount: countResult.count,
-      selectCount: selectResult.data?.length || 0,
-      idsCount: idsOnlyResult.data?.length || 0,
-      countError: countResult.error,
-      selectError: selectResult.error,
-      idsError: idsOnlyResult.error,
-      selectData: selectResult.data,
-      idsData: idsOnlyResult.data
+      timestamp,
+      diagnostics: {
+        rawCount: countResult.count,
+        rawCountError: countResult.error?.message,
+        
+        allSelectCount: allResult.data?.length || 0,
+        allSelectError: allResult.error?.message,
+        allSelectSample: allResult.data?.slice(0, 3),
+        
+        overviewSelectCount: overviewResult.data?.length || 0, 
+        overviewSelectError: overviewResult.error?.message,
+        overviewSelectSample: overviewResult.data?.slice(0, 3),
+        
+        libFunctionCount: libResult.length,
+        libFunctionSample: libResult.slice(0, 3),
+        
+        nullRecordsCount: nullCheckResult.data?.length || 0,
+        nullRecords: nullCheckResult.data,
+        
+        discrepancy: {
+          countVsAll: countResult.count !== (allResult.data?.length || 0),
+          countVsOverview: countResult.count !== (overviewResult.data?.length || 0),
+          countVsLib: countResult.count !== libResult.length
+        }
+      }
     })
   } catch (error) {
     return NextResponse.json({
