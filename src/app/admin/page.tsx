@@ -218,7 +218,7 @@ export default function AdminDashboard() {
               <div>
                 <h3 className="text-sm font-medium text-green-800">✅ System Status: FUNKTIONSFÄHIG</h3>
                 <p className="text-sm text-green-700 mt-1">
-                  Browser-basierte Lösung • Lokaler Speicher • Volle Funktionalität
+                  Cloud-Synchronisation • Cross-Device • Lokaler Backup • Volle Funktionalität
                 </p>
               </div>
               <div className="text-sm text-green-600">
