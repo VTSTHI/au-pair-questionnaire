@@ -101,38 +101,42 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
   }
   
   try {
-    // Multiple query strategies for consistency
-    let data, error
+    console.log('🔍 Fetching questionnaires overview from Supabase...')
     
-    // Remove limit and try different strategies
-    console.log('Attempting Supabase query without limit...')
-    
-    // First, get total count to debug
-    const countResult = await supabase
-      .from('questionnaires')
-      .select('id', { count: 'exact', head: true })
-    
-    console.log('Supabase total count:', countResult.count)
-    
-    const result = await supabase
+    // Use a simple query without debugging complexity
+    const { data, error } = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
       .order('created_at', { ascending: false })
     
-    console.log('Supabase query result:', result.data?.length, 'questionnaires')
-    console.log('Count vs Query difference:', countResult.count, 'vs', result.data?.length)
-    
-    data = result.data
-    error = result.error
-    
-    if (error || !data) {
-      console.error('Supabase overview error:', error)
+    if (error) {
+      console.error('❌ Supabase overview error:', error)
       return []
     }
     
-    console.log('Supabase raw data count:', data.length)
+    if (!data) {
+      console.log('⚠️ No data returned from Supabase')
+      return []
+    }
     
-    return data.map(item => ({
+    console.log('✅ Retrieved', data.length, 'questionnaires from Supabase')
+    
+    // Check for duplicates based on unique_token
+    const uniqueTokens = new Set()
+    const filteredData = data.filter(item => {
+      if (uniqueTokens.has(item.unique_token)) {
+        console.log('⚠️ Duplicate found, skipping:', item.unique_token)
+        return false
+      }
+      uniqueTokens.add(item.unique_token)
+      return true
+    })
+    
+    if (filteredData.length !== data.length) {
+      console.log('🧹 Filtered out', data.length - filteredData.length, 'duplicates')
+    }
+    
+    return filteredData.map(item => ({
       id: item.id,
       uniqueToken: item.unique_token,
       firstName: item.first_name,
@@ -144,7 +148,7 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
       updatedAt: item.updated_at
     }))
   } catch (error) {
-    console.error('Failed to get overviews from cloud:', error)
+    console.error('❌ Failed to get overviews from cloud:', error)
     return []
   }
 }

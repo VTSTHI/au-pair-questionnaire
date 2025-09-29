@@ -85,37 +85,17 @@ export default function AdminDashboard() {
         const cloudData = await cloudResponse.json()
         setNewInvitationLink(cloudData.invitationLink)
         
-        // Reload questionnaires to show the new one
-        await loadQuestionnaires()
-        
-        // Show success message
+        // Show success message immediately
         setTimeout(() => {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
-        // Polling mechanism to ensure new link appears
-        const pollForNewQuestionnaire = async (expectedCount: number, attempts: number = 0) => {
-          if (attempts > 10) {
-            console.log('⚠️ Stopped polling after 10 attempts')
-            return
-          }
-          
-          console.log(`🔄 Polling attempt ${attempts + 1} for questionnaire count > ${expectedCount}`)
+        // Force reload with a delay to ensure database consistency
+        console.log('🔄 Forcing questionnaire reload after link generation...')
+        setTimeout(async () => {
           await loadQuestionnaires()
-          
-          // Check if we got the new questionnaire
-          if (questionnaires.length > expectedCount) {
-            console.log('✅ Found new questionnaire after', attempts + 1, 'attempts')
-            return
-          }
-          
-          // Try again in 2 seconds
-          setTimeout(() => pollForNewQuestionnaire(expectedCount, attempts + 1), 2000)
-        }
-        
-        // Start polling for the new questionnaire
-        const currentCount = questionnaires.length
-        setTimeout(() => pollForNewQuestionnaire(currentCount), 1000)
+          console.log('✅ Questionnaire list refreshed')
+        }, 2000)
         
         console.log('✅ Generated invitation link via cloud')
         
