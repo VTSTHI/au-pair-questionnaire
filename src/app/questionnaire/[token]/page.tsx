@@ -6,6 +6,8 @@ import { useParams, useRouter } from 'next/navigation'
 interface QuestionnaireData {
   id?: string
   uniqueToken?: string
+  createdAt?: string
+  updatedAt?: string
   firstName?: string
   lastName?: string
   gender?: string
