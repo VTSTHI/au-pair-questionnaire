@@ -95,12 +95,20 @@ export default function QuestionnairePage() {
 
   const fetchQuestionnaire = async () => {
     try {
-      const response = await fetch(`/api/questionnaire/${token}`)
-      if (response.ok) {
-        const questionnaireData = await response.json()
+      // Load from localStorage instead of API
+      const stored = localStorage.getItem(`questionnaire_${token}`)
+      if (stored) {
+        const questionnaireData = JSON.parse(stored)
         setData(questionnaireData)
-      } else if (response.status === 404) {
-        setError('Questionnaire not found. Please check your invitation link.')
+      } else {
+        // Create new questionnaire entry if it doesn't exist
+        const newQuestionnaire = {
+          uniqueToken: token,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+        localStorage.setItem(`questionnaire_${token}`, JSON.stringify(newQuestionnaire))
+        setData(newQuestionnaire)
       }
     } catch (error) {
       setError('Failed to load questionnaire.')
@@ -116,29 +124,71 @@ export default function QuestionnairePage() {
     setSuccess('')
 
     try {
-      const response = await fetch(`/api/questionnaire/${token}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      })
-
-      if (response.ok) {
-        setSuccess('Questionnaire saved successfully!')
-        setTimeout(() => setSuccess(''), 3000)
-      } else {
-        setError('Failed to save questionnaire.')
+      // Save to localStorage instead of API
+      const updatedData = {
+        ...data,
+        uniqueToken: token,
+        updatedAt: new Date().toISOString()
       }
+      
+      localStorage.setItem(`questionnaire_${token}`, JSON.stringify(updatedData))
+      
+      // Also update the admin dashboard list
+      const adminList = JSON.parse(localStorage.getItem('auPairQuestionnaires') || '[]')
+      const existingIndex = adminList.findIndex((q: any) => q.uniqueToken === token)
+      
+      if (existingIndex >= 0) {
+        adminList[existingIndex] = {
+          ...adminList[existingIndex],
+          firstName: updatedData.firstName,
+          lastName: updatedData.lastName,
+          age: updatedData.age,
+          country: updatedData.country,
+          nationality: updatedData.nationality,
+          updatedAt: updatedData.updatedAt
+        }
+      } else {
+        adminList.push({
+          id: token,
+          uniqueToken: token,
+          firstName: updatedData.firstName,
+          lastName: updatedData.lastName,
+          age: updatedData.age,
+          country: updatedData.country,
+          nationality: updatedData.nationality,
+          createdAt: updatedData.createdAt || new Date().toISOString(),
+          updatedAt: updatedData.updatedAt
+        })
+      }
+      
+      localStorage.setItem('auPairQuestionnaires', JSON.stringify(adminList))
+      
+      setSuccess('✅ Fragebogen erfolgreich gespeichert!')
+      setTimeout(() => setSuccess(''), 5000)
     } catch (error) {
-      setError('Failed to save questionnaire.')
+      setError('❌ Fehler beim Speichern des Fragebogens.')
     } finally {
       setSaving(false)
     }
   }
 
   const handleChange = (field: keyof QuestionnaireData, value: any) => {
-    setData(prev => ({ ...prev, [field]: value }))
+    const newData = { ...data, [field]: value }
+    setData(newData)
+    
+    // Auto-save after a short delay
+    setTimeout(() => {
+      try {
+        const updatedData = {
+          ...newData,
+          uniqueToken: token,
+          updatedAt: new Date().toISOString()
+        }
+        localStorage.setItem(`questionnaire_${token}`, JSON.stringify(updatedData))
+      } catch (error) {
+        console.error('Auto-save failed:', error)
+      }
+    }, 1000)
   }
 
   if (loading) {
