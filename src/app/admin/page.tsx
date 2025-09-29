@@ -26,22 +26,28 @@ export default function AdminDashboard() {
     loadQuestionnaires()
   }, [])
 
-  const loadQuestionnaires = async () => {
+  const loadQuestionnaires = async (forceRefresh = false) => {
     setLoading(true)
     try {
-      // Try to load from cloud first
-      const cloudResponse = await fetch('/api/cloud/admin/overview')
+      // Add cache busting for forced refreshes
+      const cacheBuster = forceRefresh ? `?t=${Date.now()}` : ''
+      const cloudResponse = await fetch(`/api/cloud/admin/overview${cacheBuster}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache'
+        }
+      })
       if (cloudResponse.ok) {
         const cloudData = await cloudResponse.json()
+        console.log('✅ API returned', cloudData.length, 'questionnaires')
         setQuestionnaires(cloudData)
         // Also save to localStorage as backup
         saveToStorage(cloudData)
-        console.log('✅ Loaded questionnaires from cloud:', cloudData.length)
-        console.log('Cloud questionnaires:', cloudData)
+        console.log('✅ State updated with', cloudData.length, 'questionnaires')
       } else {
+        console.log('⚠️ Cloud response not ok:', cloudResponse.status)
         // Fallback to localStorage
         loadStoredQuestionnaires()
-        console.log('⚠️ Cloud unavailable, using localStorage')
       }
     } catch (error) {
       console.error('Cloud fetch failed, using localStorage:', error)
@@ -90,12 +96,10 @@ export default function AdminDashboard() {
           alert(`✅ Einladungslink erfolgreich generiert! (Cloud)\n\nLink: ${cloudData.invitationLink}\n\nToken: ${cloudData.token}`)
         }, 100)
         
-        // Force reload with a delay to ensure database consistency
-        console.log('🔄 Forcing questionnaire reload after link generation...')
-        setTimeout(async () => {
-          await loadQuestionnaires()
-          console.log('✅ Questionnaire list refreshed')
-        }, 2000)
+        // Force reload immediately with cache busting
+        console.log('🔄 Forcing immediate questionnaire reload...')
+        await loadQuestionnaires(true)
+        console.log('✅ Questionnaire list refreshed immediately')
         
         console.log('✅ Generated invitation link via cloud')
         
@@ -208,7 +212,7 @@ export default function AdminDashboard() {
                   {generating ? 'Generiere...' : '🔗 Neuen Einladungslink generieren'}
                 </button>
                 <button
-                  onClick={loadQuestionnaires}
+                  onClick={() => loadQuestionnaires(true)}
                   disabled={loading}
                   className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50"
                 >
