@@ -107,12 +107,20 @@ export async function getQuestionnairesOverviewFromCloud(): Promise<CloudQuestio
     // Remove limit and try different strategies
     console.log('Attempting Supabase query without limit...')
     
+    // First, get total count to debug
+    const countResult = await supabase
+      .from('questionnaires')
+      .select('id', { count: 'exact', head: true })
+    
+    console.log('Supabase total count:', countResult.count)
+    
     const result = await supabase
       .from('questionnaires')
       .select('id, unique_token, first_name, last_name, age, country, nationality, created_at, updated_at')
       .order('created_at', { ascending: false })
     
     console.log('Supabase query result:', result.data?.length, 'questionnaires')
+    console.log('Count vs Query difference:', countResult.count, 'vs', result.data?.length)
     
     data = result.data
     error = result.error
