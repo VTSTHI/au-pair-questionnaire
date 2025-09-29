@@ -125,6 +125,7 @@ export default function QuestionnairePage() {
 
     try {
       // Save to localStorage instead of API
+      console.log('Saving questionnaire to localStorage...', token)
       const updatedData = {
         ...data,
         uniqueToken: token,
